@@ -4,7 +4,7 @@ from scipy.spatial.distance import cdist
 from matplotlib import pyplot as plt
 
 class AgglomerativeClustering:
-	def __init__(self, nb_cluster=2, linkage="single"):
+	def __init__(self, nb_cluster=2, linkage="group-average"):
 		self.nb_cluster = nb_cluster
 		self.linkage = linkage
 		self.distanceMatrix = []
@@ -16,6 +16,8 @@ class AgglomerativeClustering:
 		self.labelList = []
 
 	def euclidean(self, a, b):
+		a = np.array(a)
+		b = np.array(b)
 		dist = np.linalg.norm(a-b, ord=2)
 		return dist
 
@@ -29,8 +31,8 @@ class AgglomerativeClustering:
 		for i in range (0, len(X)):
 			distanceRow = []
 			for j in range (0, len(X)):
-				# dist = self.euclidean(np.array(X[i]), np.array(X[j]))
-				dist = self.manhattan(np.array(X[i]), np.array(X[j]))
+				dist = self.euclidean(np.array(X[i]), np.array(X[j]))
+				# dist = self.manhattan(np.array(X[i]), np.array(X[j]))
 				distanceRow.append(dist)
 			self.distanceMatrix.append(distanceRow)
 			self.distanceMatrixMember.append([i])
@@ -76,7 +78,6 @@ class AgglomerativeClustering:
 		avgValue = 0
 		centroid1 = []
 		centroid2 = []
-
 		if len(dataList1) > 1:
 			centroid1 = self.createCentroid(dataList1)
 		else:
@@ -86,7 +87,8 @@ class AgglomerativeClustering:
 			centroid2 = self.createCentroid(dataList2)
 		else:
 			centroid2 = X[dataList2[0]]
-		avgValue = self.manhattan(centroid1, centroid2)
+		# avgValue = self.manhattan(centroid1, centroid2)
+		avgValue = self.euclidean(centroid1, centroid2)
 
 		return avgValue
 
@@ -107,6 +109,8 @@ class AgglomerativeClustering:
 			if len(cluster[0]) == 	self.dataLength:
 				self.allInOneCluster = True
 				break
+		# if (np.count_nonzero(np.array(self.distanceMatrixChanged)) == 0):
+		# 	self.allInOneCluster = True
 	
 	def printCluster(self):
 		print ("CLUSTER LIST")
@@ -124,12 +128,10 @@ class AgglomerativeClustering:
 
 	def generateLabel(self):
 		selectedClusterList = self.getClusterList()
-		print("selected cluster list", selectedClusterList)
 		for i in range(0, self.dataLength):
 			self.labelList.append(1)
 
 		for i in range(0, len(selectedClusterList)):
-			print(selectedClusterList[i])
 			for data in selectedClusterList[i]:
 				self.labelList[data] = i
 
@@ -140,6 +142,7 @@ class AgglomerativeClustering:
 		self.dataLength = len(X)
 		self.initDistanceMatrix(X)
 		self.distanceMatrixChanged = self.distanceMatrix[:]
+		z = 0
 		while not (self.allInOneCluster):
 			#get min distance value
 			arr = np.array(self.distanceMatrixChanged)
@@ -163,7 +166,7 @@ class AgglomerativeClustering:
 
 			# save cluster
 			self.clusterList.append(self.distanceMatrixMember[:])
-
+			
 			#create new distance matrix
 			temp = []
 			for i in range(0, len(self.distanceMatrixMember)):
@@ -177,13 +180,14 @@ class AgglomerativeClustering:
 						dist = self.completeLinkage(self.distanceMatrixMember[i], self.distanceMatrixMember[j])
 					elif(self.linkage == "average"):
 						dist = self.averageLinkage(self.distanceMatrixMember[i], self.distanceMatrixMember[j])
-					elif(self.linkage == "group-average"):
+					else:
 						dist = self.averageGroupLinkage(X, self.distanceMatrixMember[i], self.distanceMatrixMember[j])
 					distanceRow.append(dist)	
 				temp.append(distanceRow[:])
 
 			self.distanceMatrixChanged = temp[:]	
 			self.isAllInOneCluster()	
+			z+=1
 		self.generateLabel()
 
 
@@ -203,11 +207,11 @@ def plot(X, labels):
 	plt.show()
 
 if __name__ == "__main__":
+	#linkage: single, complete, average, group-average
 	agglo = AgglomerativeClustering(5, "group-average")
 	# X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
 	# X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
 	X = readData()
 	agglo.fit(X)
-	agglo.printCluster()
 	labels = np.array(agglo.getLabels())
 	plot(np.array(X), labels)
