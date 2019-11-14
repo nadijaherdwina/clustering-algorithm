@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial.distance import cdist
+from matplotlib import pyplot as plt
 
 class AgglomerativeClustering:
 	def __init__(self, nb_cluster=2, linkage="single"):
@@ -129,7 +130,10 @@ class AgglomerativeClustering:
 		for i in range(0, len(selectedClusterList)):
 			print(selectedClusterList[i])
 			for data in selectedClusterList[i]:
-				self.labelList[data] = i+1
+				self.labelList[data] = i
+
+	def getLabels(self):
+		return self.labelList
 
 	def fit(self, X):
 		self.dataLength = len(X)
@@ -182,13 +186,19 @@ class AgglomerativeClustering:
 		self.generateLabel()
 
 
+def plot(X, labels):
+	plt.scatter(X[labels==0, 0], X[labels==0, 1], s=5, marker='o', color='blue')
+	plt.scatter(X[labels==1, 0], X[labels==1, 1], s=5, marker='o', color='green')
+	plt.scatter(X[labels==2, 0], X[labels==2, 1], s=5, marker='o', color='purple')
+	plt.scatter(X[labels==3, 0], X[labels==3, 1], s=5, marker='o', color='orange')
+	plt.scatter(X[labels==4, 0], X[labels==4, 1], s=5, marker='o', color='red')
+	plt.show()
 
-		
-
-agglo = AgglomerativeClustering(3, "single")
-X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
-# X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
-agglo.fit(X)
-agglo.printCluster()
-# cluster = agglo.getCluster()
-print(agglo.labelList)
+if __name__ == "__main__":
+	agglo = AgglomerativeClustering(3, "single")
+	X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
+	# X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
+	agglo.fit(X)
+	agglo.printCluster()
+	labels = np.array(agglo.getLabels())
+	plot(np.array(X), labels)
