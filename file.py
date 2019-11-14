@@ -88,8 +88,33 @@ class AgglomerativeClustering:
 			maxValue = np.amax(arr)
 		return maxValue
 
-	def averageLinkage(self):
-		return 0
+	def averageLinkage(self, dataList1, dataList2):
+		arr = []
+		print("datalist1", dataList1)
+		print("datalist2", dataList2)
+		maxValue = 0
+		if (dataList1 != dataList2):
+			for data1 in dataList1:
+				for data2 in dataList2:
+					if isinstance(data1, int) and isinstance(data2, int):
+						print("a",data1, data2, self.distanceMatrix[data1][data2])
+						arr.append(self.distanceMatrix[data1][data2])
+					else:
+						if isinstance(data1, int) and not isinstance(data2, int):
+							print("b",data1, data2[0], self.distanceMatrix[data1][data2[0]])
+							arr.append(self.distanceMatrix[data1][data2[0]])
+						elif not isinstance(data1, int) and isinstance(data2, int):
+							print("c",data1[0], data2, self.distanceMatrix[data1[0]][data2])
+							arr.append(self.distanceMatrix[data1[0]][data2])
+						else:
+							print("d",data1[0], data2[0])
+							print(self.distanceMatrix[data1[0]][data2[0]])
+							arr.append(self.distanceMatrix[data1[0]][data2[0]])
+							print("ok")
+			maxValue = np.average(arr)
+			print("average", maxValue)
+			print("\n")
+		return maxValue
 
 	def isAllInOneCluster(self):
 		for cluster in self.clusterList:
@@ -163,7 +188,7 @@ class AgglomerativeClustering:
 		
 
 print("Halo")
-agglo = AgglomerativeClustering(2, "complete")
+agglo = AgglomerativeClustering(2, "average")
 X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
 # X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
 agglo.fit(X)
