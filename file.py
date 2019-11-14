@@ -116,6 +116,48 @@ class AgglomerativeClustering:
 			print("\n")
 		return maxValue
 
+	def averageGroupLinkage(self, X, dataList1, dataList2):
+		avgValue = 0
+		centroid1 = []
+		centroid2 = []
+
+		if len(dataList1) > 1:
+			# print("datalist1", dataList1, "centroid1", centroid1)
+			centroid1 = self.createCentroid(dataList1)
+			# print("centroid1", centroid1)
+		else:
+			# print("datalist1", dataList1, "centroid1", centroid1)
+			centroid1 = X[dataList1[0]]
+			# print("centroid1", centroid1)
+
+		if (len(dataList2) > 1):
+			# print("datalist2", dataList2, "centroid2", centroid2)
+			centroid2 = self.createCentroid(dataList2)
+			# print("centroid2", centroid2)
+		else:
+			# print("datalist2", dataList2, "centroid2", centroid2)
+			centroid2 = X[dataList2[0]]
+			# print("centroid2", centroid2)
+		avgValue = self.manhattan(centroid1, centroid2)
+		print(centroid1, centroid2, avgValue)
+		return avgValue
+
+	def createCentroid(self, dataList):
+		centroid = []
+		for i in range(0, len(X[0])):
+			centroid.append(0)
+		# print("centroid append 0", centroid)
+		# print("dataList", dataList)
+		for data in dataList:
+			# 0, 2
+			for i in range(0, len(X[data])):
+				centroid[i] += X[data][i]
+			# print("centroid addition", data, centroid)
+
+		for i in range (len(centroid)):
+			centroid[i] = float(centroid[i])/len(dataList)
+		return centroid
+
 	def isAllInOneCluster(self):
 		for cluster in self.clusterList:
 			arr = np.array(cluster)
@@ -149,9 +191,9 @@ class AgglomerativeClustering:
 				minIndex = minIndexList[0]
 			distanceMatrixMemberTemp = self.distanceMatrixMember[:]
 			newCluster = []
-			print("minIndex", minIndex, "minvalue", minValue)
+			# print("minIndex", minIndex, "minvalue", minValue)
 			for data in minIndex:
-				print("data to be removed: ", data)
+				# print("data to be removed: ", data)
 				self.distanceMatrixMember.remove(distanceMatrixMemberTemp[data])
 				newCluster.append(distanceMatrixMemberTemp[data])
 			self.distanceMatrixMember.append(np.concatenate(newCluster).ravel().tolist())
@@ -172,6 +214,8 @@ class AgglomerativeClustering:
 						dist = self.completeLinkage(self.distanceMatrixMember[i], self.distanceMatrixMember[j])
 					elif(self.linkage == "average"):
 						dist = self.averageLinkage(self.distanceMatrixMember[i], self.distanceMatrixMember[j])
+					elif(self.linkage == "group-average"):
+						dist = self.averageGroupLinkage(X, self.distanceMatrixMember[i], self.distanceMatrixMember[j])
 					distanceRow.append(dist)	
 				temp.append(distanceRow[:])
 			self.distanceMatrixChanged = temp[:]	
@@ -188,7 +232,7 @@ class AgglomerativeClustering:
 		
 
 print("Halo")
-agglo = AgglomerativeClustering(2, "average")
+agglo = AgglomerativeClustering(2, "group-average")
 X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
 # X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
 agglo.fit(X)
