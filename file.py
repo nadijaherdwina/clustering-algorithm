@@ -38,15 +38,6 @@ class AgglomerativeClustering:
 			self.clusterList.append([i])
 	
 	def singleLinkage(self, dataList1, dataList2):
-		# if len(dataList1) == 1:
-		# 	dataList1 =[dataList1]
-		# if len(dataList2) == 1:
-		# 	dataList2 = [dataList2]
-
-		# if isinstance(dataList1, int):
-		# 	dataList1 =np.array([dataList1])
-		# if isinstance(dataList2, int):
-		# 	dataList2 = np.array([dataList2])
 		arr = []
 		print("datalist1", dataList1)
 		print("datalist2", dataList2)
@@ -70,8 +61,32 @@ class AgglomerativeClustering:
 		print("\n")
 		return np.amin(arr)
 
-	def completeLinkage(self):
-		return 0
+	def completeLinkage(self, dataList1, dataList2):
+		arr = []
+		print("datalist1", dataList1)
+		print("datalist2", dataList2)
+		maxValue = 0
+		if (dataList1 != dataList2):
+			for data1 in dataList1:
+				for data2 in dataList2:
+					if isinstance(data1, int) and isinstance(data2, int):
+						print("a",data1, data2, self.distanceMatrix[data1][data2])
+						arr.append(self.distanceMatrix[data1][data2])
+					else:
+						if isinstance(data1, int) and not isinstance(data2, int):
+							print("b",data1, data2[0], self.distanceMatrix[data1][data2[0]])
+							arr.append(self.distanceMatrix[data1][data2[0]])
+						elif not isinstance(data1, int) and isinstance(data2, int):
+							print("c",data1[0], data2, self.distanceMatrix[data1[0]][data2])
+							arr.append(self.distanceMatrix[data1[0]][data2])
+						else:
+							print("d",data1[0], data2[0])
+							print(self.distanceMatrix[data1[0]][data2[0]])
+							arr.append(self.distanceMatrix[data1[0]][data2[0]])
+							print("ok")
+			print("\n")
+			maxValue = np.amax(arr)
+		return maxValue
 
 	def averageLinkage(self):
 		return 0
@@ -95,13 +110,23 @@ class AgglomerativeClustering:
 		print("---------------------------------------------")
 		self.distanceMatrixChanged = self.distanceMatrix[:]
 		while not (self.allInOneCluster):
+		# for i in range(0,3):
 			#get min distance value
 			arr = np.array(self.distanceMatrixChanged)
 			minValue = np.min(arr[np.nonzero(arr)])
-			minIndex = np.where(arr == np.min(arr[np.nonzero(arr)]))[0]
+			nb_minValue = (arr == minValue).sum()
+			minIndex=[]
+			if (nb_minValue == 1):
+				minIndex = np.where(arr == np.min(arr[np.nonzero(arr)]))[0]
+			else:
+				minIndexTemp = np.where(arr == np.min(arr[np.nonzero(arr)]))
+				minIndexList = list(zip(minIndexTemp[0], minIndexTemp[1]))
+				minIndex = minIndexList[0]
 			distanceMatrixMemberTemp = self.distanceMatrixMember[:]
 			newCluster = []
+			print("minIndex", minIndex, "minvalue", minValue)
 			for data in minIndex:
+				print("data to be removed: ", data)
 				self.distanceMatrixMember.remove(distanceMatrixMemberTemp[data])
 				newCluster.append(distanceMatrixMemberTemp[data])
 			self.distanceMatrixMember.append(np.concatenate(newCluster).ravel().tolist())
@@ -115,7 +140,13 @@ class AgglomerativeClustering:
 				data = self.distanceMatrixMember[i]
 				distanceRow = []
 				for j in range(0, len(self.distanceMatrixMember)):
-					dist = self.singleLinkage(self.distanceMatrixMember[i], self.distanceMatrixMember[j])
+					dist = 0
+					if (self.linkage == "single"):
+						dist = self.singleLinkage(self.distanceMatrixMember[i], self.distanceMatrixMember[j])
+					elif (self.linkage == "complete"):
+						dist = self.completeLinkage(self.distanceMatrixMember[i], self.distanceMatrixMember[j])
+					elif(self.linkage == "average"):
+						dist = self.averageLinkage(self.distanceMatrixMember[i], self.distanceMatrixMember[j])
 					distanceRow.append(dist)	
 				temp.append(distanceRow[:])
 			self.distanceMatrixChanged = temp[:]	
@@ -129,15 +160,13 @@ class AgglomerativeClustering:
 
 
 
-		# if (self.linkage == "single"):
-		# 	self.singleLinkage()
-		# elif (self.linkage == "complete"):
-		# 	self.completeLinkage()
-		# elif(self.linkage == "average"):
-		# 	self.averageLinkage()
-
+		
 
 print("Halo")
-agglo = AgglomerativeClustering(2, "single")
+agglo = AgglomerativeClustering(2, "complete")
 X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
+# X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
 agglo.fit(X)
+print ("CLUSTER LIST")
+for cluster in agglo.clusterList:
+	print(cluster)
