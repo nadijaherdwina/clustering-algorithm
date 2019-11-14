@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy.spatial.distance import cdist
 from matplotlib import pyplot as plt
 
@@ -186,6 +187,13 @@ class AgglomerativeClustering:
 		self.generateLabel()
 
 
+
+def readData():
+	dataset = pd.read_csv('iris.data')
+	dataset = dataset.iloc[:,0:4]
+	dataset = dataset.drop_duplicates(keep="first").reset_index(drop=True)
+	return dataset.values
+
 def plot(X, labels):
 	plt.scatter(X[labels==0, 0], X[labels==0, 1], s=5, marker='o', color='blue')
 	plt.scatter(X[labels==1, 0], X[labels==1, 1], s=5, marker='o', color='green')
@@ -195,9 +203,10 @@ def plot(X, labels):
 	plt.show()
 
 if __name__ == "__main__":
-	agglo = AgglomerativeClustering(3, "single")
-	X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
+	agglo = AgglomerativeClustering(5, "group-average")
+	# X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
 	# X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
+	X = readData()
 	agglo.fit(X)
 	agglo.printCluster()
 	labels = np.array(agglo.getLabels())
