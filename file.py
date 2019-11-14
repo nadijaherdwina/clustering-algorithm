@@ -11,6 +11,7 @@ class AgglomerativeClustering:
 		self.clusterList = []
 		self.allInOneCluster = False
 		self.dataLength = 0
+		self.labelList = []
 
 	def euclidean(self, a, b):
 		dist = np.linalg.norm(a-b, ord=2)
@@ -110,7 +111,7 @@ class AgglomerativeClustering:
 		for cluster in agglo.clusterList:
 			print(cluster)
 
-	def getCluster(self):
+	def getClusterList(self):
 		clust = self.clusterList[0]
 		if self.nb_cluster < self.dataLength:
 			#find cluster with length = nb_cluster
@@ -118,6 +119,17 @@ class AgglomerativeClustering:
 				if len(cluster) == self.nb_cluster:
 					clust = cluster[:] 
 		return clust
+
+	def generateLabel(self):
+		selectedClusterList = self.getClusterList()
+		print("selected cluster list", selectedClusterList)
+		for i in range(0, self.dataLength):
+			self.labelList.append(1)
+
+		for i in range(0, len(selectedClusterList)):
+			print(selectedClusterList[i])
+			for data in selectedClusterList[i]:
+				self.labelList[data] = i+1
 
 	def fit(self, X):
 		self.dataLength = len(X)
@@ -167,15 +179,16 @@ class AgglomerativeClustering:
 
 			self.distanceMatrixChanged = temp[:]	
 			self.isAllInOneCluster()	
+		self.generateLabel()
 
 
 
 		
 
-agglo = AgglomerativeClustering(50, "single")
+agglo = AgglomerativeClustering(3, "single")
 X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
 # X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
 agglo.fit(X)
-# agglo.printCluster()
-cluster = agglo.getCluster()
-print(cluster)
+agglo.printCluster()
+# cluster = agglo.getCluster()
+print(agglo.labelList)
