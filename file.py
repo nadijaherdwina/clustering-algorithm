@@ -31,9 +31,9 @@ class AgglomerativeClustering:
 				distanceRow.append(dist)
 			self.distanceMatrix.append(distanceRow)
 			self.distanceMatrixMember.append([i])
-			self.clusterList.append([i])
-	
-	def singleLinkage(self, dataList1, dataList2):
+		self.clusterList.append(self.distanceMatrixMember[:])
+
+	def getPossibleValues(self, dataList1, dataList2):
 		arr = []
 		for data1 in dataList1:
 			for data2 in dataList2:
@@ -46,44 +46,29 @@ class AgglomerativeClustering:
 						arr.append(self.distanceMatrix[data1[0]][data2])
 					else:
 						arr.append(self.distanceMatrix[data1[0]][data2[0]])
-		return np.amin(arr)
+		return arr
+	
+	def singleLinkage(self, dataList1, dataList2):
+		minValue = 0
+		if (dataList1 != dataList2):
+			arr = self.getPossibleValues(dataList1, dataList2)
+			minValue = np.amin(arr)
+		return minValue
 
 	def completeLinkage(self, dataList1, dataList2):
-		arr = []
 		maxValue = 0
 		if (dataList1 != dataList2):
-			for data1 in dataList1:
-				for data2 in dataList2:
-					if isinstance(data1, int) and isinstance(data2, int):
-						arr.append(self.distanceMatrix[data1][data2])
-					else:
-						if isinstance(data1, int) and not isinstance(data2, int):
-							arr.append(self.distanceMatrix[data1][data2[0]])
-						elif not isinstance(data1, int) and isinstance(data2, int):
-							arr.append(self.distanceMatrix[data1[0]][data2])
-						else:
-							arr.append(self.distanceMatrix[data1[0]][data2[0]])
+			arr = self.getPossibleValues(dataList1, dataList2)
 			maxValue = np.amax(arr)
 		return maxValue
 
 	def averageLinkage(self, dataList1, dataList2):
-		arr = []
-		maxValue = 0
+		avgValue = 0
 		if (dataList1 != dataList2):
-			for data1 in dataList1:
-				for data2 in dataList2:
-					if isinstance(data1, int) and isinstance(data2, int):
-						arr.append(self.distanceMatrix[data1][data2])
-					else:
-						if isinstance(data1, int) and not isinstance(data2, int):
-							arr.append(self.distanceMatrix[data1][data2[0]])
-						elif not isinstance(data1, int) and isinstance(data2, int):
-							arr.append(self.distanceMatrix[data1[0]][data2])
-						else:
-							arr.append(self.distanceMatrix[data1[0]][data2[0]])
-			maxValue = np.average(arr)
-		return maxValue
-
+			arr = self.getPossibleValues(dataList1, dataList2)
+			avgValue = np.average(arr)
+		return avgValue
+	
 	def averageGroupLinkage(self, X, dataList1, dataList2):
 		avgValue = 0
 		centroid1 = []
@@ -116,15 +101,23 @@ class AgglomerativeClustering:
 	def isAllInOneCluster(self):
 		for cluster in self.clusterList:
 			arr = np.array(cluster)
-			if arr.ndim > 1:
-				if len(cluster[0]) == 	self.dataLength:
-					self.allInOneCluster = True
-					break
+			if len(cluster[0]) == 	self.dataLength:
+				self.allInOneCluster = True
+				break
 	
 	def printCluster(self):
 		print ("CLUSTER LIST")
 		for cluster in agglo.clusterList:
 			print(cluster)
+
+	def getCluster(self):
+		clust = self.clusterList[0]
+		if self.nb_cluster < self.dataLength:
+			#find cluster with length = nb_cluster
+			for cluster in self.clusterList:
+				if len(cluster) == self.nb_cluster:
+					clust = cluster[:] 
+		return clust
 
 	def fit(self, X):
 		self.dataLength = len(X)
@@ -179,8 +172,10 @@ class AgglomerativeClustering:
 
 		
 
-agglo = AgglomerativeClustering(2, "group-average")
+agglo = AgglomerativeClustering(50, "single")
 X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
 # X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
 agglo.fit(X)
-agglo.printCluster()
+# agglo.printCluster()
+cluster = agglo.getCluster()
+print(cluster)
