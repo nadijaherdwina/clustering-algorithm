@@ -109,8 +109,6 @@ class AgglomerativeClustering:
 			if len(cluster[0]) == 	self.dataLength:
 				self.allInOneCluster = True
 				break
-		# if (np.count_nonzero(np.array(self.distanceMatrixChanged)) == 0):
-		# 	self.allInOneCluster = True
 	
 	def printCluster(self):
 		print ("CLUSTER LIST")
@@ -146,7 +144,6 @@ class AgglomerativeClustering:
 		self.distanceMatrixChanged = self.distanceMatrix[:]
 		z = 0
 		while not (self.allInOneCluster):
-		# for g in range(0,6):
 			#get min distance value
 			arr = np.array(self.distanceMatrixChanged)
 			minValue = np.min(arr[np.nonzero(arr)])
