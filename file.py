@@ -4,7 +4,7 @@ from scipy.spatial.distance import cdist
 from matplotlib import pyplot as plt
 
 class AgglomerativeClustering:
-	def __init__(self, nb_cluster=2, linkage="group-average"):
+	def __init__(self, nb_cluster=5, linkage="group-average"):
 		self.nb_cluster = nb_cluster
 		self.linkage = linkage
 		self.distanceMatrix = []
@@ -135,6 +135,8 @@ class AgglomerativeClustering:
 			for data in selectedClusterList[i]:
 				self.labelList[data] = i
 
+		self.labelList = np.array(self.labelList)
+
 	def getLabels(self):
 		return self.labelList
 
@@ -144,17 +146,14 @@ class AgglomerativeClustering:
 		self.distanceMatrixChanged = self.distanceMatrix[:]
 		z = 0
 		while not (self.allInOneCluster):
+		# for g in range(0,6):
 			#get min distance value
 			arr = np.array(self.distanceMatrixChanged)
 			minValue = np.min(arr[np.nonzero(arr)])
 			nb_minValue = (arr == minValue).sum()
-			minIndex=[]
-			if (nb_minValue == 1):
-				minIndex = np.where(arr == np.min(arr[np.nonzero(arr)]))[0]
-			else:
-				minIndexTemp = np.where(arr == np.min(arr[np.nonzero(arr)]))
-				minIndexList = list(zip(minIndexTemp[0], minIndexTemp[1]))
-				minIndex = minIndexList[0]
+			minIndexTemp = np.where(arr == np.min(arr[np.nonzero(arr)]))
+			minIndexList = list(zip(minIndexTemp[0], minIndexTemp[1]))
+			minIndex = minIndexList[0]
 
 			#update distance member list
 			distanceMatrixMemberTemp = self.distanceMatrixMember[:]
@@ -166,7 +165,7 @@ class AgglomerativeClustering:
 
 			# save cluster
 			self.clusterList.append(self.distanceMatrixMember[:])
-			
+
 			#create new distance matrix
 			temp = []
 			for i in range(0, len(self.distanceMatrixMember)):
@@ -199,19 +198,19 @@ def readData():
 	return dataset.values
 
 def plot(X, labels):
-	plt.scatter(X[labels==0, 0], X[labels==0, 1], s=5, marker='o', color='blue')
+	plt.scatter(X[labels==0, 0], X[labels==0, 1], s=5, marker='o', color='purple')
 	plt.scatter(X[labels==1, 0], X[labels==1, 1], s=5, marker='o', color='green')
-	plt.scatter(X[labels==2, 0], X[labels==2, 1], s=5, marker='o', color='purple')
+	plt.scatter(X[labels==2, 0], X[labels==2, 1], s=5, marker='o', color='red')
 	plt.scatter(X[labels==3, 0], X[labels==3, 1], s=5, marker='o', color='orange')
-	plt.scatter(X[labels==4, 0], X[labels==4, 1], s=5, marker='o', color='red')
+	plt.scatter(X[labels==4, 0], X[labels==4, 1], s=5, marker='o', color='blue')
 	plt.show()
 
 if __name__ == "__main__":
 	#linkage: single, complete, average, group-average
-	agglo = AgglomerativeClustering(5, "group-average")
+	model = AgglomerativeClustering(3, "average")
 	# X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
 	# X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
 	X = readData()
-	agglo.fit(X)
-	labels = np.array(agglo.getLabels())
+	model.fit(X)
+	labels = model.getLabels()
 	plot(np.array(X), labels)
