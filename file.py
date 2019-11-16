@@ -2,18 +2,20 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
 from matplotlib import pyplot as plt
+from sklearn.model_selection import train_test_split
 
 class AgglomerativeClustering:
-	def __init__(self, nb_cluster=5, linkage="group-average"):
+	def __init__(self, nb_cluster=5, linkage="average-group"):
 		self.nb_cluster = nb_cluster
 		self.linkage = linkage
 		self.distanceMatrix = []
 		self.distanceMatrixChanged = []
 		self.distanceMatrixMember = []
 		self.clusterList = []
+		self.selectedClusterList = []
 		self.allInOneCluster = False
 		self.dataLength = 0
-		self.labelList = []
+		self.X = []
 
 	def euclidean(self, a, b):
 		a = np.array(a)
@@ -94,11 +96,11 @@ class AgglomerativeClustering:
 
 	def createCentroid(self, dataList):
 		centroid = []
-		for i in range(0, len(X[0])):
+		for i in range(0, len(self.X[0])):
 			centroid.append(0)
 		for data in dataList:
-			for i in range(0, len(X[data])):
-				centroid[i] += X[data][i]
+			for i in range(0, len(self.X[data])):
+				centroid[i] += self.X[data][i]
 		for i in range (len(centroid)):
 			centroid[i] = float(centroid[i])/len(dataList)
 		return centroid
@@ -125,21 +127,20 @@ class AgglomerativeClustering:
 		return clust
 
 	def generateLabel(self):
-		selectedClusterList = self.getClusterList()
+		labelList = []
+		self.selectedClusterList = self.getClusterList()
 		for i in range(0, self.dataLength):
-			self.labelList.append(1)
+			labelList.append(1)
 
-		for i in range(0, len(selectedClusterList)):
-			for data in selectedClusterList[i]:
-				self.labelList[data] = i
+		for i in range(0, len(self.selectedClusterList)):
+			for data in self.selectedClusterList[i]:
+				labelList[data] = i
 
-		self.labelList = np.array(self.labelList)
-
-	def getLabels(self):
-		return self.labelList
+		return np.array(labelList)
 
 	def fit(self, X):
 		self.dataLength = len(X)
+		self.X = X[:]
 		self.initDistanceMatrix(X)
 		self.distanceMatrixChanged = self.distanceMatrix[:]
 		z = 0
@@ -184,15 +185,40 @@ class AgglomerativeClustering:
 			self.distanceMatrixChanged = temp[:]	
 			self.isAllInOneCluster()	
 			z+=1
-		self.generateLabel()
+		labels = self.generateLabel()
+		return labels
 
+	def predict(self, X_test):
+		centroidList = []
 
+		#create centroid from cluster
+		for cluster in self.selectedClusterList:
+			centroid = self.createCentroid(cluster)
+			centroidList.append(centroid)
+		
+		#predict
+		y_pred = []
+		for data in X_test:
+			minDist = self.euclidean(data, centroidList[0])
+			clusterPred = 0
+			for i in range(len(centroidList)):
+				dist = self.euclidean(data, centroidList[i])
+				if (dist < minDist):
+					minDist = dist
+					clusterPred = i
+			y_pred.append(clusterPred)
+		return np.array(y_pred)
 
 def readData():
-	dataset = pd.read_csv('iris.data')
-	dataset = dataset.iloc[:,0:4]
-	dataset = dataset.drop_duplicates(keep="first").reset_index(drop=True)
-	return dataset.values
+	dataset = pd.read_csv('iris.data', names=["1", "2", "3", "4", "label"])
+	df = pd.DataFrame(dataset)
+	X_train,X_test,y_train,y_test = train_test_split(df.iloc[:,:-1], df.iloc[:,-1], test_size=0.1, random_state=42)
+
+	dicti = {"Iris-setosa": 0, "Iris-versicolor":1, "Iris-virginica":2}
+	y_train = y_train.apply(lambda y: dicti[y])
+	y_test = y_test.apply(lambda y: dicti[y])
+	
+	return np.array(X_train), np.array(X_test), y_train, y_test
 
 def plot(X, labels):
 	plt.scatter(X[labels==0, 0], X[labels==0, 1], s=5, marker='o', color='purple')
@@ -202,12 +228,14 @@ def plot(X, labels):
 	plt.scatter(X[labels==4, 0], X[labels==4, 1], s=5, marker='o', color='blue')
 	plt.show()
 
+
 if __name__ == "__main__":
-	#linkage: single, complete, average, group-average
+	#linkage: single, complete, average, average-group
 	model = AgglomerativeClustering(3, "average")
-	# X = [[1,1], [4,1], [1,2], [3,4], [5,4]]
-	# X = [[0.4, 0.53], [0.22, 0.38], [0.35,0.32], [0.26, 0.19], [0.08,0.41], [0.45,0.3]]
-	X = readData()
-	model.fit(X)
-	labels = model.getLabels()
-	plot(np.array(X), labels)
+	X_train, X_test, y_train, y_test = readData()
+	
+	y_train_pred = model.fit(X_train)
+	plot(np.array(X_train), y_train_pred)
+	
+	y_test_pred = model.predict(X_test)
+	plot(np.array(X_test), y_test_pred)
