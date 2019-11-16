@@ -3,6 +3,7 @@ import pandas as pd
 from scipy.spatial.distance import cdist
 from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 class AgglomerativeClustering:
 	def __init__(self, nb_cluster=5, linkage="average-group"):
@@ -147,11 +148,23 @@ class AgglomerativeClustering:
 		while not (self.allInOneCluster):
 			#get min distance value
 			arr = np.array(self.distanceMatrixChanged)
-			minValue = np.min(arr[np.nonzero(arr)])
-			nb_minValue = (arr == minValue).sum()
-			minIndexTemp = np.where(arr == np.min(arr[np.nonzero(arr)]))
-			minIndexList = list(zip(minIndexTemp[0], minIndexTemp[1]))
-			minIndex = minIndexList[0]
+			minValue = 0
+			try:
+				minValue = np.min(arr[np.nonzero(arr)])
+			except ValueError:
+				pass
+			if (minValue == 0):
+				minIndexTemp = np.where(arr == np.min(arr))
+				minIndexList = list(zip(minIndexTemp[0], minIndexTemp[1]))
+				minIndex = []
+				for min in minIndexList:
+					if (min[0] != min[1]):
+						minIndex = min
+						break
+			else:	
+				minIndexTemp = np.where(arr == np.min(arr[np.nonzero(arr)]))
+				minIndexList = list(zip(minIndexTemp[0], minIndexTemp[1]))
+				minIndex = minIndexList[0]
 
 			#update distance member list
 			distanceMatrixMemberTemp = self.distanceMatrixMember[:]
@@ -188,12 +201,13 @@ class AgglomerativeClustering:
 		labels = self.generateLabel()
 		return labels
 
-	def predict(self, X_test):
+	def predict(self, X_test, y_train_pred):
 		centroidList = []
-
+		centroidLabelList = []
 		#create centroid from cluster
 		for cluster in self.selectedClusterList:
 			centroid = self.createCentroid(cluster)
+			centroidLabelList.append(y_train_pred[cluster[0]])
 			centroidList.append(centroid)
 		
 		#predict
@@ -205,7 +219,7 @@ class AgglomerativeClustering:
 				dist = self.euclidean(data, centroidList[i])
 				if (dist < minDist):
 					minDist = dist
-					clusterPred = i
+					clusterPred = centroidLabelList[i]
 			y_pred.append(clusterPred)
 		return np.array(y_pred)
 
@@ -228,14 +242,28 @@ def plot(X, labels):
 	plt.scatter(X[labels==4, 0], X[labels==4, 1], s=5, marker='o', color='blue')
 	plt.show()
 
+def convertLabel(X, y, y_pred, nb_cluster):
+    target = {}
+    for i in range(nb_cluster):
+        id = np.where(y_pred == i)
+        target[i] = y.iloc[id].mode()[0]
+    y_conv = np.vectorize(target.get)(y_pred)
+    return y_conv
 
 if __name__ == "__main__":
 	#linkage: single, complete, average, average-group
-	model = AgglomerativeClustering(3, "average")
+	model = AgglomerativeClustering(3, "single")
 	X_train, X_test, y_train, y_test = readData()
-	
+
+	#fit
 	y_train_pred = model.fit(X_train)
+	y_train_pred = convertLabel(X_train, y_train, y_train_pred, 3)
 	plot(np.array(X_train), y_train_pred)
 	
-	y_test_pred = model.predict(X_test)
+	#predict
+	y_test_pred = model.predict(X_test, y_train_pred)
 	plot(np.array(X_test), y_test_pred)
+
+	#get accuracy
+	accuracy = accuracy_score(y_test, y_test_pred)
+	print(accuracy)
