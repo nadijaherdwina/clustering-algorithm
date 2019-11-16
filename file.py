@@ -4,8 +4,9 @@ from scipy.spatial.distance import cdist
 from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.cluster import AgglomerativeClustering
 
-class AgglomerativeClustering:
+class AggloClustering:
 	def __init__(self, nb_cluster=5, linkage="average-group"):
 		self.nb_cluster = nb_cluster
 		self.linkage = linkage
@@ -251,10 +252,11 @@ def convertLabel(X, y, y_pred, nb_cluster):
     return y_conv
 
 if __name__ == "__main__":
-	#linkage: single, complete, average, average-group
-	model = AgglomerativeClustering(3, "single")
 	X_train, X_test, y_train, y_test = readData()
 
+	#AGGLOMERATIVE CLUSTERING ------------------------
+	model = AggloClustering(3, "average") #linkage: single, complete, average, average-group
+	
 	#fit
 	y_train_pred = model.fit(X_train)
 	y_train_pred = convertLabel(X_train, y_train, y_train_pred, 3)
@@ -263,7 +265,23 @@ if __name__ == "__main__":
 	#predict
 	y_test_pred = model.predict(X_test, y_train_pred)
 	plot(np.array(X_test), y_test_pred)
-
+	
 	#get accuracy
 	accuracy = accuracy_score(y_test, y_test_pred)
+	print(accuracy)
+
+	#AGGLOMERATIVE CLUSTERING WITH SCIKIT LEARN ------------
+	skmodel = AgglomerativeClustering(n_clusters=3, linkage='average')
+	
+	#fit
+	skmodel.fit(X_train)
+	sk_y_train_pred = convertLabel(X_train, y_train, skmodel.labels_, 3)
+	plot(np.array(X_train), sk_y_train_pred)
+
+	#predict
+	sk_y_test_pred = skmodel.fit_predict(X_test)
+	plot(np.array(X_test), sk_y_test_pred)
+
+	#accuracy
+	accuracy = accuracy_score(y_test, sk_y_test_pred)
 	print(accuracy)
