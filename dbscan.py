@@ -97,26 +97,22 @@ def dbscanNoLibrary():
     # Iterate through points
     for i in range(135):
         if (dbscan.Xchecked[i] == 0):
-            print(i)
             dbscan.Xchecked[i] = 1
 
             # Find neighbors
             neighbors = dbscan.findNeighbors(i, X_train)
-            print(neighbors)
 
             # Cluster it (running recursively)
             dbscan.clusterThat(X_train, i, neighbors, clusterCount)
             clusterCount += 1
             
             p = dbscan.pointsCompleted(X_train)
-            print(p)
     
     # ---- RESULT ----
     labelsCluster = []
     for i in range(135):
         labelsCluster.append(dbscan.Xcluster[i])
     
-    print(labelsCluster)
     labels = np.array(labelsCluster)
     core_samples_mask = np.zeros_like(labels, dtype=bool)
     core_samples_mask[134] = True
