@@ -57,7 +57,7 @@ class DBSCANClustering:
                 neighbors.append(X[j])
         return neighbors
 
-    def clusterThat(self, X, i, neighbors, clusterCount):
+    def fit(self, X, i, neighbors, clusterCount):
         self.Xchecked[i] = 1
         if (len(neighbors) == 0):
             self.Xcluster[i] = -1
@@ -66,7 +66,7 @@ class DBSCANClustering:
                 self.Xcluster[i] = clusterCount
             for j in range (len(neighbors)):
                 if (self.Xcluster[j] == -1) and (self.Xchecked[j] == 0):
-                    self.clusterThat(X, j, self.findNeighborsRecursive(i, X), clusterCount)        
+                    self.fit(X, j, self.findNeighborsRecursive(i, X), clusterCount)        
 
 def readData():
     dataset = pd.read_csv('iris.data', names=["1", "2", "3", "4", "label"])
@@ -103,7 +103,7 @@ def dbscanNoLibrary():
             neighbors = dbscan.findNeighbors(i, X_train)
 
             # Cluster it (running recursively)
-            dbscan.clusterThat(X_train, i, neighbors, clusterCount)
+            dbscan.fit(X_train, i, neighbors, clusterCount)
             clusterCount += 1
             
             p = dbscan.pointsCompleted(X_train)
